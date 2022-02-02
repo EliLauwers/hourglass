@@ -138,26 +138,27 @@ class Board:
         Moves all points in given direction
         """
         assert gravity in ["U", "D", "L", "R"], "Invalid gravity"
-        i = -1
+        i = 0
         while i < len(self.points):
-            i += 1
             point = self.points[i]
             # get the point in the wanted direction
             gravpoint, sides = self.neighbor(point, direction = gravity)
 
             if gravpoint is None and sides == []:
+                i += 1
                 continue
 
             if gravpoint is not None and gravpoint not in self.points:
                 i = 0
                 self.points.remove(point)
                 self.points.append(gravpoint)
+                continue
 
             elif sides != []:
                 i = 0
                 self.points.remove(point)
                 self.points.append(random.choice(sides))
-
+                continue
         return self
 
 
