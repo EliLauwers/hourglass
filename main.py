@@ -94,28 +94,50 @@ class Board:
         """
         y, x = point
 
-        if "U" in direction:
-            y -= 1
-        elif "D" in direction:
-            y += 1
+        dct = {
+            "U": (x, y - 1),
+            "D": [x, y + 1],
+            "L": [x - 1, y],
+            "R": [x + 1, y],
+            "UR": [x + 1, y-1],
+            "DR": [x + 1, y + 1],
+            "DL": [x - 1, y + 1],
+            "UL": [x - 1, y-1]
+        }
+        resp = []
+        # if we need a main dir (U, D, L, R), then we need to search for double characet
+        needed_len = 2 if len(direction) == 1 else 2
+        for k, point in zip(dct.keys(), dct.values()):
+            if not all([0 <= point[0] < self.dim, point[1] <= y < self.dim]):
+                point = None
 
-        if "L" in direction:
-            x -= 1
-        elif "R" in direction:
-            x += 1
+            # check if we need to add it to the response object
+            if k == direction:
+                resp.insert(0, point)
+                continue
 
-        # points must fall in the board
-        if not 0 <= x < self.dim:
-            return None
-        if not 0 <= y < self.dim:
-            return None
-        return y, x
+            if len(k) != needed_len:
+                continue
+
+            wanted_key = direction in k if needed_len == 2 else k in direction
+
+            if wanted_key:
+                resp.append(point)
+
+
+
+
+
+
+
+
+        return resp
 
     def update(self, gravity = "DR"):
         """
         Moves all points in given direction
         """
-        assert gravity in ["U", "D", "L", "R", "UR", "DR", "DL", "UL"], "Invalid gravity"
+        assert gravity in ["U", "D", "L", "R"], "Invalid gravity"
         point_found = True
         while point_found:
             point_found = False
@@ -147,7 +169,7 @@ if __name__ == "__main__":
     # print(board)
     # print(board.print_lights())
 
-    for dir in ["U", "UR",  "R", "DR", "D", "DL", "L", "UL"]:
+    for dir in ["U", "D", "L", "R"]:
         print("Original")
         print(Board(4))
         print(f"Dir: {dir}")
