@@ -159,6 +159,7 @@ class Board:
                 self.points.remove(point)
                 self.points.append(random.choice(sides))
                 continue
+            i += 1
         return self
 
 
@@ -171,11 +172,13 @@ class Board:
 if __name__ == "__main__":
 
     board = Board(4)
-    print(board.update("U"))
+    # print(board.update("U"))
     # print(board)
     # print(board.print_lights())
 
-
+    for dir in ["U", "D", "R", "L"]:
+        print(Board(6).update(dir))
+        print("\n")
     # print("")
     # print(board)
     # print(board.print_lights())
