@@ -1,4 +1,5 @@
 import re
+import random
 
 class Board:
     def __init__(self, dim, points = None):
@@ -8,7 +9,7 @@ class Board:
         # check if no point lays outside of the board
         points_check = [all([el <= dim - 1 for el in point]) for point in points]
         assert all(points_check), "Points exceed dimension"
-        self.points = set(points)
+        self.points = points
 
     def __repr__(self):
         """
@@ -96,41 +97,40 @@ class Board:
 
         dct = {
             "U": (x, y - 1),
-            "D": [x, y + 1],
-            "L": [x - 1, y],
-            "R": [x + 1, y],
-            "UR": [x + 1, y-1],
-            "DR": [x + 1, y + 1],
-            "DL": [x - 1, y + 1],
-            "UL": [x - 1, y-1]
+            "D": (x, y + 1),
+            "L": (x - 1, y),
+            "R": (x + 1, y),
+            "UR": (x + 1, y-1),
+            "DR": (x + 1, y + 1),
+            "DL": (x - 1, y + 1),
+            "UL": (x - 1, y-1)
         }
-        resp = []
+        resp = [None, []]
         # if we need a main dir (U, D, L, R), then we need to search for double characet
         needed_len = 2 if len(direction) == 1 else 2
         for k, point in zip(dct.keys(), dct.values()):
-            if not all([0 <= point[0] < self.dim, point[1] <= y < self.dim]):
-                point = None
+
+            x_inrange = 0 <= point[0] < self.dim
+            y_inrange = 0 <= point[1] < self.dim
+
+            if not all([x_inrange, y_inrange]):
+                continue
 
             # check if we need to add it to the response object
             if k == direction:
-                resp.insert(0, point)
+                resp[0] = point
                 continue
 
+            # The key might still be a side key
             if len(k) != needed_len:
                 continue
 
             wanted_key = direction in k if needed_len == 2 else k in direction
+            if not wanted_key:
+                continue
 
-            if wanted_key:
-                resp.append(point)
-
-
-
-
-
-
-
-
+            if point not in self.points:
+                resp[1].append(point)
         return resp
 
     def update(self, gravity = "DR"):
@@ -138,22 +138,26 @@ class Board:
         Moves all points in given direction
         """
         assert gravity in ["U", "D", "L", "R"], "Invalid gravity"
-        point_found = True
-        while point_found:
-            point_found = False
-            for point in self.points:
-                # get the point in the wanted direction
-                quest = self.neighbor(point, direction = gravity)
+        i = -1
+        while i < len(self.points):
+            i += 1
+            point = self.points[i]
+            # get the point in the wanted direction
+            gravpoint, sides = self.neighbor(point, direction = gravity)
 
-                if not quest:
-                    continue
+            if gravpoint is None and sides == []:
+                continue
 
-                neighbor_empty = quest not in self.points
-                if neighbor_empty:
-                    point_found = True
-                    self.points.remove(point)
-                    self.points.add(quest)
-            x = 1
+            if gravpoint is not None and gravpoint not in self.points:
+                i = 0
+                self.points.remove(point)
+                self.points.append(gravpoint)
+
+            elif sides != []:
+                i = 0
+                self.points.remove(point)
+                self.points.append(random.choice(sides))
+
         return self
 
 
@@ -166,15 +170,11 @@ class Board:
 if __name__ == "__main__":
 
     board = Board(4)
+    print(board.update("U"))
     # print(board)
     # print(board.print_lights())
 
-    for dir in ["U", "D", "L", "R"]:
-        print("Original")
-        print(Board(4))
-        print(f"Dir: {dir}")
-        print(Board(4).update(dir))
-        print("\n\n")
+
     # print("")
     # print(board)
     # print(board.print_lights())
