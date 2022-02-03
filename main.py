@@ -1,7 +1,7 @@
 import re
 import random
 import time
-
+from numpy.random import choice
 
 class Board:
     def __init__(self, dim, points = None):
@@ -11,7 +11,7 @@ class Board:
         # check if no point lays outside of the board
         points_check = [all([el <= dim - 1 for el in point]) for point in points]
         assert all(points_check), "Points exceed dimension"
-        self.points = set(points)
+        self.points = points
 
     def __repr__(self):
         """
@@ -52,7 +52,7 @@ class Board:
             row = []
             for y in range(self.dim):
                 if raw:
-                    val = "X" if (x, y) in self.points else "0"
+                    val = "X" if (x, y) in self.points else "-"
                 else:
                     val = f"{x}.{y}"
                 row.append(val)
@@ -115,7 +115,40 @@ class Board:
             return None
         return (col, row)
 
-    def update(self, gravity = "DR", debug = False, wait = 1.25):
+    def follow(self, gravity = "DR"):
+        assert gravity in ["U", "D", "L", "R", "UL", "UR", "DR", "DL"], "Invalid gravity"
+        point = self.points[0]
+        # check if the point can fall down to gravity
+        gravpoint = self.neighbor(point, gravity)
+        if gravpoint:
+            self.points.remove(point)
+            self.points.append(gravpoint)
+            return self
+        # the point cannot fall down
+        # let the point fall to a side
+        side_dirs = side_directions(gravity)
+        side_points = []
+        for dir in side_dirs:
+            p = self.neighbor(point, dir)
+            if not p:
+                continue
+            side_points.append(p)
+        if len(side_points) == 2:
+            self.points.remove(point)
+            self.points.append(random.choice(side_points))
+        elif side_points != []:
+            self.points.remove(point)
+            self.points.append(side_points[0])
+        else:
+            # nothing happend, put the point back
+            self.points.remove(point)
+            self.points.append(point)
+
+        return self
+
+
+
+    def pull(self, gravity = "DR", debug = False, wait = 1.25):
         """
         Moves all points in given direction
         """
@@ -180,7 +213,6 @@ class Board:
                         # by inserting it at the front, we ensure that the point will be chosen the next time
                         self.points.add(newpoint)
                         prev_point = newpoint
-
         return self
 
 
@@ -206,11 +238,23 @@ def side_directions(direction):
 
 if __name__ == "__main__":
     from math import ceil
-    dim = 5
+    dim = 6
     el = ceil(dim / 2)
     points = [
         (el, el),
+        (el - 1, el),
         (el, el - 1)
     ]
     board = Board(dim, points)
-    print(board.update("L", debug = True))
+    dirs = ["U", "D", "L", "R", "UL", "UR","DR","DL"]
+    arrows = ["↑","↓","←","→","↖","↗","↘","↙"]
+    gravity = dirs[0]
+    while True:
+        sides = side_directions(gravity)
+        probs = [.5 if dir == gravity else .2 if dir in sides else .10 / 5 for dir in dirs]
+        gravity = choice(dirs, 1, probs)
+        for i in range(10):
+            print(arrows[dirs.index(gravity)] * dim * 2)
+            print(board.follow(gravity))
+            time.sleep(1)
+
