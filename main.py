@@ -9,7 +9,7 @@ class Board:
         # check if no point lays outside of the board
         points_check = [all([el <= dim - 1 for el in point]) for point in points]
         assert all(points_check), "Points exceed dimension"
-        self.points = points
+        self.points = set(points)
 
     def __repr__(self):
         """
@@ -93,74 +93,101 @@ class Board:
         :param direction:
         :return:
         """
-        y, x = point
+        col, row = point
 
-        dct = {
-            "U": (x, y - 1),
-            "D": (x, y + 1),
-            "L": (x - 1, y),
-            "R": (x + 1, y),
-            "UR": (x + 1, y-1),
-            "DR": (x + 1, y + 1),
-            "DL": (x - 1, y + 1),
-            "UL": (x - 1, y-1)
-        }
-        resp = [None, []]
-        # if we need a main dir (U, D, L, R), then we need to search for double characet
-        needed_len = 2 if len(direction) == 1 else 2
-        for k, point in zip(dct.keys(), dct.values()):
+        if "U" in direction:
+            col -= 1
+        elif "D" in direction:
+            col += 1
 
-            x_inrange = 0 <= point[0] < self.dim
-            y_inrange = 0 <= point[1] < self.dim
+        if "R" in direction:
+            row += 1
+        elif "L" in direction:
+            row -= 1
 
-            if not all([x_inrange, y_inrange]):
-                continue
-
-            # check if we need to add it to the response object
-            if k == direction:
-                resp[0] = point
-                continue
-
-            # The key might still be a side key
-            if len(k) != needed_len:
-                continue
-
-            wanted_key = direction in k if needed_len == 2 else k in direction
-            if not wanted_key:
-                continue
-
-            if point not in self.points:
-                resp[1].append(point)
-        return resp
+        row_inrange = 0 <= row < self.dim
+        col_inrange = 0 <= col < self.dim
+        if not all([row_inrange, col_inrange]):
+            return None
+        if (col, row) in self.points:
+            return None
+        return (col, row)
 
     def update(self, gravity = "DR"):
         """
         Moves all points in given direction
         """
-        assert gravity in ["U", "D", "L", "R"], "Invalid gravity"
+        assert gravity in ["U", "D", "L", "R", "UL", "UR","DR","DL"], "Invalid gravity"
+        side_dirs = side_directions(gravity)
+        prev_point = None
         i = 0
-        while i < len(self.points):
-            point = self.points[i]
-            # get the point in the wanted direction
-            gravpoint, sides = self.neighbor(point, direction = gravity)
+        while True:
+            gravpoints = [self.neighbor(p, direction=gravity) for p in self.points]
+            first, second = [[self.neighbor(p, dir) for p in self.points] for dir in side_dirs]
+            if not any(gravpoints + first + second):
+                return self
 
-            if gravpoint is None and sides == []:
-                i += 1
-                continue
+            if prev_point:
+                # check if this point can fall further
+                gravpoint = self.neighbor(prev_point, direction=gravity)
+                if gravpoint:
+                    self.points.remove(prev_point)
+                    self.points.add(gravpoint)
+                prev_point = gravpoint
+            else:
+                # check if any point can fall into gravity
+                points_copy = self.points.copy()
+                gravpoints = [self.neighbor(p, direction=gravity) for p in points_copy]
+                first, second = [[self.neighbor(p, dir) for p in points_copy] for dir in side_dirs]
+                if any(gravpoints):
+                    # iterate over all points with their gravpoint
+                    for point, gravpoint in zip(points_copy, gravpoints):
+                        if point not in self.points:
+                            continue
+                        # if a gravpoint can be found ..
+                        if not gravpoint:
+                            continue
+                        # update the points list
+                        self.points.remove(point)
+                        self.points.add(gravpoint)
+                        prev_point = gravpoint
+                elif any([first, second]):
+                    for point, two_points in zip(points_copy, zip(first, second)):
+                        if point not in self.points:
+                            continue
+                        if not any(two_points):
+                            continue
+                        if all(two_points):
+                            newpoint = random.choice(two_points)
+                        elif two_points[0]:
+                            newpoint = two_points[0]
+                        elif two_points[1]:
+                            newpoint = two_points[1]
+                        # update the points list
+                        self.points.remove(point)
+                        # by inserting it at the front, we ensure that the point will be chosen the next time
+                        self.points.add(newpoint)
+                        prev_point = newpoint
 
-            if gravpoint is not None and gravpoint not in self.points:
-                i = 0
-                self.points.remove(point)
-                self.points.append(gravpoint)
-                continue
-
-            elif sides != []:
-                i = 0
-                self.points.remove(point)
-                self.points.append(random.choice(sides))
-                continue
-            i += 1
         return self
+
+
+def side_directions(direction):
+    """
+    Returns the both wanted sides
+    :param direction:
+    :return: list
+    """
+    # if a combined dir has been provided, return the two main dirs
+    if len(direction) == 2:
+        return list(direction)
+    # else, we need to find the sides of a main dir
+    horizontal = ["L", "R"]
+    vertical = ["U","D"]
+    if direction in horizontal:
+        return [f"{v}{direction}" for v in vertical]
+    return[f"{direction}{h}" for h in horizontal]
+
 
 
 
@@ -171,14 +198,8 @@ class Board:
 
 if __name__ == "__main__":
 
-    board = Board(4)
-    # print(board.update("U"))
-    # print(board)
-    # print(board.print_lights())
-
-    for dir in ["U", "D", "R", "L"]:
-        print(Board(6).update(dir))
-        print("\n")
-    # print("")
-    # print(board)
-    # print(board.print_lights())
+    board = Board(5, points = [(2,2),(1,2)])
+    board = Board(10)
+    print(board)
+    print("=" * 10)
+    print(board.update("DL"))

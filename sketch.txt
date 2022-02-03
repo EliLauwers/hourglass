@@ -1,0 +1,32 @@
+resp = [None, []]
+    # if we need a main dir (U, D, L, R), then we need to search for double characet
+    needed_len = 2 if len(direction) == 1 else 2
+    for key, point in zip(dct.keys(), dct.values()):
+
+        if point == ():
+            continue
+
+        x_inrange = 0 <= point[0] < self.dim
+        y_inrange = 0 <= point[1] < self.dim
+
+        if not all([x_inrange, y_inrange]):
+            continue
+
+        # check if we need to add it to the response object
+        if dir == direction:
+            resp[0] = point
+            continue
+
+        # The key might still be a side key
+        if len(key) != needed_len:
+            continue
+
+        wanted_key = direction in key if needed_len == 2 else key in direction
+        if not wanted_key:
+            continue
+
+        if point not in self.points:
+            resp[1].append(point)
+
+
+
