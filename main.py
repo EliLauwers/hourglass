@@ -1,4 +1,3 @@
-import re
 import random
 import time
 from numpy.random import choice
@@ -133,86 +132,14 @@ class Board:
             if not p:
                 continue
             side_points.append(p)
-        if len(side_points) == 2:
+        if side_points != []:
             self.points.remove(point)
             self.points.append(random.choice(side_points))
-        elif side_points != []:
-            self.points.remove(point)
-            self.points.append(side_points[0])
         else:
             # nothing happend, put the point back
             self.points.remove(point)
             self.points.append(point)
 
-        return self
-
-
-
-    def pull(self, gravity = "DR", debug = False, wait = 1.25):
-        """
-        Moves all points in given direction
-        """
-        if debug:
-            print(self)
-            print(gravity.center(self.dim * 3, "="))
-            assert isinstance(wait, float) or isinstance(wait, int), "numeric data for wait"
-            time.sleep(wait)
-
-        assert gravity in ["U", "D", "L", "R", "UL", "UR","DR","DL"], "Invalid gravity"
-        side_dirs = side_directions(gravity)
-        prev_point = None
-        while True:
-            gravpoints = [self.neighbor(p, direction=gravity) for p in self.points]
-            first, second = [[self.neighbor(p, dir) for p in self.points] for dir in side_dirs]
-            if not any(gravpoints + first + second):
-                return self
-
-            if debug and prev_point:
-                print(self)
-                print(gravity.center(self.dim * 3, "="))
-                time.sleep(wait)
-
-            if prev_point:
-                # check if this point can fall further
-                gravpoint = self.neighbor(prev_point, direction=gravity)
-                if gravpoint:
-                    self.points.remove(prev_point)
-                    self.points.add(gravpoint)
-                prev_point = gravpoint
-            else:
-                # check if any point can fall into gravity
-                points_copy = self.points.copy()
-                gravpoints = [self.neighbor(p, direction=gravity) for p in points_copy]
-                first, second = [[self.neighbor(p, dir) for p in points_copy] for dir in side_dirs]
-                if any(gravpoints):
-                    # iterate over all points with their gravpoint
-                    for point, gravpoint in zip(points_copy, gravpoints):
-                        if point not in self.points:
-                            continue
-                        # if a gravpoint can be found ..
-                        if not gravpoint:
-                            continue
-                        # update the points list
-                        self.points.remove(point)
-                        self.points.add(gravpoint)
-                        prev_point = gravpoint
-                elif any([first, second]):
-                    for point, two_points in zip(points_copy, zip(first, second)):
-                        if point not in self.points:
-                            continue
-                        if not any(two_points):
-                            continue
-                        if all(two_points):
-                            newpoint = random.choice(two_points)
-                        elif two_points[0]:
-                            newpoint = two_points[0]
-                        elif two_points[1]:
-                            newpoint = two_points[1]
-                        # update the points list
-                        self.points.remove(point)
-                        # by inserting it at the front, we ensure that the point will be chosen the next time
-                        self.points.add(newpoint)
-                        prev_point = newpoint
         return self
 
 
