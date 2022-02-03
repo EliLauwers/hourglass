@@ -1,5 +1,7 @@
 import re
 import random
+import time
+
 
 class Board:
     def __init__(self, dim, points = None):
@@ -27,7 +29,7 @@ class Board:
         for x in range(self.dim):
             row = []
             for y in range(self.dim):
-                val = "X" if (x, y) in self.points else "O"
+                val = "X" if (x, y) in self.points else "-"
                 row.append(val)
             matrix.append(" ".join(row))
         return "\n".join(matrix)
@@ -50,7 +52,7 @@ class Board:
             row = []
             for y in range(self.dim):
                 if raw:
-                    val = "X" if (x, y) in self.points else "O"
+                    val = "X" if (x, y) in self.points else "0"
                 else:
                     val = f"{x}.{y}"
                 row.append(val)
@@ -113,19 +115,29 @@ class Board:
             return None
         return (col, row)
 
-    def update(self, gravity = "DR"):
+    def update(self, gravity = "DR", debug = False, wait = 1.25):
         """
         Moves all points in given direction
         """
+        if debug:
+            print(self)
+            print(gravity.center(self.dim * 3, "="))
+            assert isinstance(wait, float) or isinstance(wait, int), "numeric data for wait"
+            time.sleep(wait)
+
         assert gravity in ["U", "D", "L", "R", "UL", "UR","DR","DL"], "Invalid gravity"
         side_dirs = side_directions(gravity)
         prev_point = None
-        i = 0
         while True:
             gravpoints = [self.neighbor(p, direction=gravity) for p in self.points]
             first, second = [[self.neighbor(p, dir) for p in self.points] for dir in side_dirs]
             if not any(gravpoints + first + second):
                 return self
+
+            if debug and prev_point:
+                print(self)
+                print(gravity.center(self.dim * 3, "="))
+                time.sleep(wait)
 
             if prev_point:
                 # check if this point can fall further
@@ -192,14 +204,13 @@ def side_directions(direction):
 
 
 
-
-
-
-
 if __name__ == "__main__":
-
-    board = Board(5, points = [(2,2),(1,2)])
-    board = Board(10)
-    print(board)
-    print("=" * 10)
-    print(board.update("DL"))
+    from math import ceil
+    dim = 5
+    el = ceil(dim / 2)
+    points = [
+        (el, el),
+        (el, el - 1)
+    ]
+    board = Board(dim, points)
+    print(board.update("L", debug = True))
