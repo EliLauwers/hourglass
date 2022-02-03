@@ -178,10 +178,10 @@ if __name__ == "__main__":
     gravity = dirs[0]
     while True:
         sides = side_directions(gravity)
-        probs = [.5 if dir == gravity else .2 if dir in sides else .10 / 5 for dir in dirs]
-        gravity = choice(dirs, 1, probs)
+        # probs = [.5 if dir == gravity else .2 if dir in sides else .10 / 5 for dir in dirs]
+        gravity = choice(dirs[:4], 1)
         for i in range(10):
             print(arrows[dirs.index(gravity)] * dim * 2)
             print(board.follow(gravity))
-            time.sleep(1)
+            time.sleep(.75)
 
