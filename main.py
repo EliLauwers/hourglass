@@ -3,14 +3,7 @@ from asciimatics.screen import Screen
 import time
 
 class Hourglass:
-    def __init__(self, dim, points = None):
-
-        if not points:
-            p1, p2 = None, None
-        elif len(points) == 1:
-            p1, p2 = points, None
-        else:
-            p1, p2 = points[0], points[1]
+    def __init__(self, dim, p1 = None, p2 = None):
 
         self.dim = dim
         self.top = Board(self.dim, p1)
@@ -76,15 +69,18 @@ if __name__ == "__main__":
     from random import randint
     def demo(screen):
         dim = 8
-        hourglass = Hourglass(dim)
+        p1 = [(x, y) for x in range(dim) for y in range(dim)][1:]
+        p2 = [(0,0)]
+        hourglass = Hourglass(dim, p1 = p1, p2 = p2)
         dirs = ["U", "D", "L", "R", "UL", "UR", "DR", "DL"]
         try:
             last_update = None
             update_time = time.time()
             while True:
                 # update in increments of .2 seconds
-                if time.time() < update_time + .2:
+                if time.time() < update_time + .4:
                     continue
+                screen.refresh()
                 # update gravity for the hourglass
                 # gravity = random.choice(dirs)
                 gravity = "DR"
@@ -92,8 +88,7 @@ if __name__ == "__main__":
                 # check if any point can follow
                 glass, follow_states = hourglass.follow(gravity)
                 for i, line in enumerate(str(hourglass).split("\n")):
-                    screen.print_at(hourglass, i, 10)
-
+                    screen.print_at(line, 0, i)
                 # if any point can follow, we are in the follow state
                 if any(follow_states):
                     last_update = None
@@ -112,7 +107,6 @@ if __name__ == "__main__":
                 # only drop sand in half a second increments
                 if time.time() < last_update + 1:
                     continue
-                screen.refresh()
                 hourglass.drop_sand()
 
 
