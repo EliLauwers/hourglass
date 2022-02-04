@@ -1,7 +1,10 @@
 from Board import Board
+from asciimatics.screen import Screen
+import time
 
 class Hourglass:
     def __init__(self, dim, points = None):
+
         if not points:
             p1, p2 = None, None
         elif len(points) == 1:
@@ -12,8 +15,8 @@ class Hourglass:
         self.dim = dim
         self.top = Board(self.dim, p1)
         self.bottom = Board(self.dim, p2)
-        self.gravity = "UL"
-        self.initial_gravity = "UL"
+        self.gravity = "DR"
+        self.initial_gravity = "DR"
 
     def update_gravity(self, gravity):
         assert gravity in ["U", "D", "L", "R", "UL", "UR", "DR", "DL"], "Invalid gravity"
@@ -30,14 +33,20 @@ class Hourglass:
             something, follow_state = board.follow(gravity)
             follow_states.append(follow_state)
         return self, follow_states
+
     def __str__(self):
         resp = [str(board) for board in [self.top, self.bottom]]
-        return ("\n" + "~" * self.dim * 2 + "\n").join(resp)
+        return ("\n" + "#" * self.dim * 2 + "\n").join(resp)
 
     def __repr__(self):
         points = [board.points for board in [self.top, self.bottom]]
         string = f"Hourglass({self.dim}, points = {points})"
         return string
+
+    def position_boards(self):
+        if self.gravity == self.initial_gravity:
+            return self.top, self.bottom
+        return self.bottom, self.top
 
     def drop_sand(self):
         """
@@ -46,10 +55,7 @@ class Hourglass:
         """
         # get top board
         assert self.gravity in ["UL","DR"], "invalid gravity"
-        if self.gravity == self.initial_gravity:
-            top, bottom = self.top, self.bottom
-        else:
-            top, bottom = self.bottom, self.top
+        top, bottom = self.position_boards()
         # check if any sand can drop
         if top.points == []:
             # the top board is empty
@@ -63,60 +69,60 @@ class Hourglass:
         bottom.points.insert(0, (0,0))
         return
 
+
+
 if __name__ == "__main__":
-    from math import ceil
-    import time
-    dim = 8
-    # el = ceil(dim / 2)
-    # points = [
-    #    (el, el),
-    #    (el - 1, el),
-    #    (el, el - 1)
-    #]
+    # from math import ceil
+    from random import randint
+    def demo(screen):
+        dim = 8
+        hourglass = Hourglass(dim)
+        dirs = ["U", "D", "L", "R", "UL", "UR", "DR", "DL"]
+        try:
+            last_update = None
+            update_time = time.time()
+            while True:
+                # update in increments of .2 seconds
+                if time.time() < update_time + .2:
+                    continue
+                # update gravity for the hourglass
+                # gravity = random.choice(dirs)
+                gravity = "DR"
+                # screen.print_at(hourglass.update_gravity(gravity), 0, 0)
+                # check if any point can follow
+                glass, follow_states = hourglass.follow(gravity)
+                for i, line in enumerate(str(hourglass).split("\n")):
+                    screen.print_at(hourglass, i, 10)
 
-    hourglass = Hourglass(dim)
-    dirs = ["U", "D", "L", "R", "UL", "UR", "DR", "DL"]
-    try:
+                # if any point can follow, we are in the follow state
+                if any(follow_states):
+                    last_update = None
+                    # there was a follow, no sand will be dropped
+                    continue
 
-        last_grav = dirs[0]
-        last_follow = False
-        last_update = None
-        update_time = time.time()
-        while True:
-            # update in increments of .2 seconds
-            if time.time() < update_time + .2:
-                continue
+                # sand can only be dropped when the board is upside down
+                if gravity not in ["UL", "DR"]:
+                    continue
 
-            # update gravity for the hourglass
-            # gravity = random.choice(dirs)
-            gravity = "DR"
-            print(hourglass.update_gravity(gravity))
-            # check if any point can follow
-            glass, follow_states = hourglass.follow(gravity)
-            print(hourglass)
-            # if any point can follow, we are in the follow state
-            if any(follow_states):
-                last_update = None
-                # there was a follow, no sand will be dropped
-                continue
+                # there wasn't a follow => drop state
+                if not last_update:
+                    last_update = time.time()
+                    continue
 
-            # sand can only be dropped when the board is upside down
-            if gravity not in ["UL", "DR"]:
-                continue
-
-            # there wasn't a follow => drop state
-            if not last_update:
-                last_update = time.time()
-                continue
-
-            # only drop sand in half a second increments
-            if time.time() < last_update + 1:
-                continue
-
-            hourglass.drop_sand()
+                # only drop sand in half a second increments
+                if time.time() < last_update + 1:
+                    continue
+                screen.refresh()
+                hourglass.drop_sand()
 
 
-    except KeyboardInterrupt:
-        print("Loop was stopped")
-        pass
+        except KeyboardInterrupt:
+            print("Loop was stopped")
+            pass
+
+
+    Screen.wrapper(demo)
+
+
+
 
