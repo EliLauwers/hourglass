@@ -80,9 +80,10 @@ class Board:
         # create a half empty matrix
         locs = [(x, y) for x in range(self.dim) for y in range(self.dim)]
         points = []
-        for loc in locs:
-            if sum(loc) > (self.dim - 1):
-                points.append(loc)
+        for x, y in locs:
+            loc_ind = x * self.dim + y
+            if loc_ind >= ((self.dim ** 2) / 2):
+                points.append((x, y))
         return points
 
     def neighbor(self, point, direction):
@@ -114,6 +115,9 @@ class Board:
 
     def follow(self, gravity = "DR"):
         assert gravity in ["U", "D", "L", "R", "UL", "UR", "DR", "DL"], "Invalid gravity"
+        if len(self.points) == 0:
+            return self, False
+
         point = self.points[0]
         # check if the point can fall down to gravity
         gravpoint = self.neighbor(point, gravity)

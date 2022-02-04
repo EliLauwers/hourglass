@@ -1,14 +1,19 @@
 from Board import Board
 
 class Hourglass:
-    def __init__(self, dim, points = [None, None]):
-        assert len(points) == 2, "Points must be of len 2"
-        p1, p2 = points
+    def __init__(self, dim, points = None):
+        if not points:
+            p1, p2 = None, None
+        elif len(points) == 1:
+            p1, p2 = points, None
+        else:
+            p1, p2 = points[0], points[1]
+
         self.dim = dim
         self.top = Board(self.dim, p1)
         self.bottom = Board(self.dim, p2)
-        self.gravity = "U"
-        self.initial_gravity = "U"
+        self.gravity = "UL"
+        self.initial_gravity = "UL"
 
     def update_gravity(self, gravity):
         assert gravity in ["U", "D", "L", "R", "UL", "UR", "DR", "DL"], "Invalid gravity"
@@ -40,7 +45,7 @@ class Hourglass:
         :return: None
         """
         # get top board
-        assert self.gravity in ["U","D"], "invalid gravity"
+        assert self.gravity in ["UL","DR"], "invalid gravity"
         if self.gravity == self.initial_gravity:
             top, bottom = self.top, self.bottom
         else:
@@ -61,14 +66,15 @@ class Hourglass:
 if __name__ == "__main__":
     from math import ceil
     import time
-    dim = 6
-    el = ceil(dim / 2)
-    points = [
-        (el, el),
-        (el - 1, el),
-        (el, el - 1)
-    ]
-    hourglass = Hourglass(dim, points=[points, points])
+    dim = 8
+    # el = ceil(dim / 2)
+    # points = [
+    #    (el, el),
+    #    (el - 1, el),
+    #    (el, el - 1)
+    #]
+
+    hourglass = Hourglass(dim)
     dirs = ["U", "D", "L", "R", "UL", "UR", "DR", "DL"]
     try:
 
@@ -83,7 +89,7 @@ if __name__ == "__main__":
 
             # update gravity for the hourglass
             # gravity = random.choice(dirs)
-            gravity = "D"
+            gravity = "DR"
             print(hourglass.update_gravity(gravity))
             # check if any point can follow
             glass, follow_states = hourglass.follow(gravity)
@@ -95,7 +101,7 @@ if __name__ == "__main__":
                 continue
 
             # sand can only be dropped when the board is upside down
-            if gravity not in ["D", "U"]:
+            if gravity not in ["UL", "DR"]:
                 continue
 
             # there wasn't a follow => drop state
