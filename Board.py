@@ -26,7 +26,7 @@ class Board:
         for x in range(self.dim):
             row = []
             for y in range(self.dim):
-                val = "X" if (x, y) in self.points else "-"
+                val = "X" if (x, y) in self.points else " "
                 row.append(val)
             matrix.append(" ".join(row))
         return "\n".join(matrix)
