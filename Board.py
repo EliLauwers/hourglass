@@ -146,7 +146,16 @@ class Board:
         # nothing happend, put the point back
         self.points.remove(point)
         self.points.append(point)
-        return self, False
+        # check if any point can follow in the near future
+        follow_states = False
+        dirs = [gravity] + side_dirs
+        for dir in dirs:
+            follow_states = any([self.neighbor(p, dir) for p in self.points])
+            if follow_states:
+                break
+
+
+        return self, follow_states
 
     def side_directions(self, direction):
         """

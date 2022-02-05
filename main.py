@@ -85,17 +85,21 @@ if __name__ == "__main__":
     try:
         counter = 0
         last_update = counter
-        wait = .2
+        wait = .1
         drop_wait = 8
         while True:
             counter += 1
             # update in increments of .2 seconds
             time.sleep(wait)
-            print("\n" * 8)
+            # print("\n" * 8)
             print(hourglass, flush = True, end = "\n")
             # update gravity for the hourglass
             gravity = "DR" # gravity = random.choice(dirs)
             # check if any point can follow
+            # [138, 147, 157]
+            if counter in [147, 157]:
+                x = 1
+
             glass, follow_states = hourglass.follow(gravity)
             # if any point can follow, we are in the follow state
             if any(follow_states):
@@ -111,6 +115,7 @@ if __name__ == "__main__":
             if counter < (last_update + drop_wait):
                 continue
 
+            # print(counter, follow_states)
             last_update = counter
             hourglass.drop_sand()
 
