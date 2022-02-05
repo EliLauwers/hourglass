@@ -67,29 +67,39 @@ class Hourglass:
 if __name__ == "__main__":
     # from math import ceil
     dim = 8
-    p1 = [(x, y) for x in range(dim) for y in range(dim)][1:]
-    p2 = [(0,0)]
+    p1 = []
+    p2 = []
+    for x in range(dim):
+            for y in range(dim):
+                point = (x, y)
+                if sum(point) < dim / 2 - 1:
+                    p1.append(point)
+                    p2.append(point)
+
+    # p1 = [(x, y) for x in range(dim) for y in range(dim)][1:]
+    # p2 = [(0, 0)]
+
     hourglass = Hourglass(dim, p1 = p1, p2 = p2)
     dirs = ["U", "D", "L", "R", "UL", "UR", "DR", "DL"]
+
     try:
+        counter = 0
         last_update = None
-        update_time = time.time()
-        wait = .3
+        wait = .2
+        drop_wait = 8
         while True:
+            counter += 1
             # update in increments of .2 seconds
-            if time.time() < update_time + wait:
-                continue
-            update_time = time.time()
+            time.sleep(wait)
+            print("\n" * 8)
             print(hourglass, flush = True, end = "\n")
             # update gravity for the hourglass
-            # gravity = random.choice(dirs)
-            gravity = "DR"
-            # screen.print_at(hourglass.update_gravity(gravity), 0, 0)
+            gravity = "DR" # gravity = random.choice(dirs)
             # check if any point can follow
             glass, follow_states = hourglass.follow(gravity)
             # if any point can follow, we are in the follow state
             if any(follow_states):
-                last_update = None
+                last_update = counter
                 # there was a follow, no sand will be dropped
                 continue
 
@@ -99,12 +109,14 @@ if __name__ == "__main__":
 
             # there wasn't a follow => drop state
             if not last_update:
-                last_update = time.time()
+                last_update = counter
                 continue
 
             # only drop sand in half a second increments
-            if time.time() < last_update + wait * 4:
+            if counter < (last_update + drop_wait):
                 continue
+
+            last_update = counter
             hourglass.drop_sand()
 
 
