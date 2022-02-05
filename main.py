@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     try:
         counter = 0
-        last_update = None
+        last_update = counter
         wait = .2
         drop_wait = 8
         while True:
@@ -105,11 +105,6 @@ if __name__ == "__main__":
 
             # sand can only be dropped when the board is upside down
             if gravity not in ["UL", "DR"]:
-                continue
-
-            # there wasn't a follow => drop state
-            if not last_update:
-                last_update = counter
                 continue
 
             # only drop sand in half a second increments
