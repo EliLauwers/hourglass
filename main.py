@@ -52,15 +52,19 @@ class Hourglass:
         # check if any sand can drop
         if top.points == []:
             # the top board is empty
-            return
+            return self, False
         # Sample one of the top points, where the sum is smallest
         sums = [sum(p) for p in top.points]
         index = sums.index(min(sums))
         poi = top.points[index]
         # remove that point from the top board and insert it in the bottom board
-        top.points.remove(poi)
-        bottom.points.insert(0, (0,0))
-        return
+        if id(top) == id(self.top):
+            top.points.remove(poi)
+            bottom.points.insert(0, (0, 0))
+        else:
+            top.points.remove(poi)
+            bottom.points.insert(0, (self.dim - 1, self.dim - 1))
+        return self, True
 
 
 
@@ -87,19 +91,15 @@ if __name__ == "__main__":
         last_update = counter
         wait = .1
         drop_wait = 8
+        gravity = "DR"
         while True:
             counter += 1
             # update in increments of .2 seconds
             time.sleep(wait)
-            # print("\n" * 8)
             print(hourglass, flush = True, end = "\n")
             # update gravity for the hourglass
-            gravity = "DR" # gravity = random.choice(dirs)
+            gravity = gravity
             # check if any point can follow
-            # [138, 147, 157]
-            if counter in [147, 157]:
-                x = 1
-
             glass, follow_states = hourglass.follow(gravity)
             # if any point can follow, we are in the follow state
             if any(follow_states):
@@ -115,9 +115,16 @@ if __name__ == "__main__":
             if counter < (last_update + drop_wait):
                 continue
 
-            # print(counter, follow_states)
-            last_update = counter
-            hourglass.drop_sand()
+            glass, state = hourglass.drop_sand()
+
+            if state:
+                last_update = counter
+            elif counter > (last_update + 2 * drop_wait):
+                gravity = "UL"
+                hourglass.update_gravity(gravity)
+
+
+
 
 
     except KeyboardInterrupt:
