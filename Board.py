@@ -31,46 +31,8 @@ class Board:
             matrix.append(" ".join(row))
         return "\n".join(matrix)
 
-    def print_lights(self, raw = True):
-        """
-        Pivots the matrix 45 degrees and prints
-        :param raw: should original coords be printed (False) or raw points (True)
-        :return: string representation of the board
-        """
-        # create lens out of the dims
-        lens = [self.dim]
-        for i in range(self.dim - 1, 0, -1):
-            lens.append(i)
-            lens.insert(0, i)
-
-        # points to array
-        array = []
-        for x in range(self.dim):
-            row = []
-            for y in range(self.dim):
-                if raw:
-                    val = "X" if (x, y) in self.points else "-"
-                else:
-                    val = f"{x}.{y}"
-                row.append(val)
-            array.append(row)
-
-        # create the printed matrix
-        betw_elements = 3 * ' ' if raw else 5 * ' '
-        center = 4 * self.dim + 2 if raw else 7 * self.dim + 2
-        new = []
-        for length in lens:
-            new_row = []
-            for ri in range(length):
-                ri = length - ri - 1
-                val = array[ri][0]
-                new_row.append(val)
-                del array[ri][0]
-                if array[ri] == []:
-                    del array[ri]
-            new.append(f"{betw_elements.join(new_row).center(center)}")
-
-        return "\n".join([row for row in new])
+    def __eq__(self, other):
+        return id(self) == id(other)
 
     def create_points(self):
         """
